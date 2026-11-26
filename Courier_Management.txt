@@ -1,0 +1,296 @@
+#include <stdio.h>
+#include <string.h>
+
+// Structure to store parcel details
+struct Parcel
+{
+    int id;
+    char name[50];
+    char phone[15];
+    char address[100];
+    char destination[100];
+    float weight;
+    char status[30];
+};
+
+struct Parcel p[100];
+int count = 0;
+
+// Function declarations
+void loadData();
+void saveData();
+void bookParcel();
+void trackParcel();
+void updateStatus();
+void customerDetails();
+void deliveryReport();
+
+int main()
+{
+    int choice;
+
+    loadData();
+
+    while (1)
+    {
+        printf("\n===== COURIER MANAGEMENT SYSTEM =====\n");
+        printf("1. Parcel Booking\n");
+        printf("2. Parcel Tracking\n");
+        printf("3. Update Delivery Status\n");
+        printf("4. Customer Details\n");
+        printf("5. Delivery Report\n");
+        printf("6. Exit\n");
+
+        printf("\nEnter your choice: ");
+
+        scanf("%d", &choice);
+
+        switch (choice)
+        {
+        case 1:
+            bookParcel();
+            break;
+
+        case 2:
+            trackParcel();
+            break;
+
+        case 3:
+            updateStatus();
+            break;
+
+        case 4:
+            customerDetails();
+            break;
+
+        case 5:
+            deliveryReport();
+            break;
+
+        case 6:
+            saveData();
+            printf("Thank you!!!\n");
+            return 0;
+
+        default:
+            printf("Invalid choice! Try again.\n");
+        }
+    }
+}
+
+// Load existing records from file
+void loadData()
+{
+    FILE *fp = fopen("courier.txt", "r");
+
+    if (fp == NULL)
+        return;
+
+    while (count < 100 &&
+           fscanf(fp, "%d\n%49[^\n]\n%14[^\n]\n%99[^\n]\n%99[^\n]\n%f\n%29[^\n]\n",
+                  &p[count].id,
+                  p[count].name,
+                  p[count].phone,
+                  p[count].address,
+                  p[count].destination,
+                  &p[count].weight,
+                  p[count].status) == 7)
+    {
+        count++;
+    }
+
+    fclose(fp);
+}
+
+// Save records permanently
+void saveData()
+{
+    FILE *fp = fopen("courier.txt", "w");
+
+    if (fp == NULL)
+    {
+        printf("Error saving file!\n");
+        return;
+    }
+
+    for (int i = 0; i < count; i++)
+    {
+        fprintf(fp, "%d\n%s\n%s\n%s\n%s\n%.2f\n%s\n",
+                p[i].id,
+                p[i].name,
+                p[i].phone,
+                p[i].address,
+                p[i].destination,
+                p[i].weight,
+                p[i].status);
+    }
+
+    fclose(fp);
+}
+
+// 1. Parcel Booking
+void bookParcel()
+{
+    if (count >= 100)
+    {
+        printf("Parcel storage is full!\n");
+        return;
+    }
+
+    p[count].id = 1001 + count;
+
+    printf("\nEnter Customer Name: ");
+    scanf(" %49[^\n]", p[count].name);
+
+    printf("Enter Phone Number: ");
+    scanf(" %14s", p[count].phone);
+
+    printf("Enter Address: ");
+    scanf(" %99[^\n]", p[count].address);
+
+    printf("Enter Destination: ");
+    scanf(" %99[^\n]", p[count].destination);
+
+    printf("Enter Parcel Weight (kg): ");
+    scanf("%f", &p[count].weight);
+
+    strcpy(p[count].status, "Booked");
+
+    printf("\nParcel booked successfully!\n");
+    printf("Your Tracking ID is: %d\n", p[count].id);
+
+    count++;
+    saveData();
+}
+
+// 2. Parcel Tracking
+void trackParcel()
+{
+    int id, found = 0;
+
+    printf("\nEnter Tracking ID: ");
+
+    scanf("%d", &id);
+
+    for (int i = 0; i < count; i++)
+    {
+        if (p[i].id == id)
+        {
+            printf("\nParcel Found!\n");
+            printf("Customer: %s\n", p[i].name);
+            printf("Destination: %s\n", p[i].destination);
+            printf("Status: %s\n", p[i].status);
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found)
+        printf("Parcel not found!\n");
+}
+
+// 3. Update Delivery Status
+void updateStatus()
+{
+    int id, found = 0, choice;
+
+    printf("\nEnter Tracking ID: ");
+    scanf("%d", &id);
+
+    for (int i = 0; i < count; i++)
+    {
+        if (p[i].id == id)
+        {
+            printf("\n1. Booked\n");
+            printf("2. In Transit\n");
+            printf("3. Out for Delivery\n");
+            printf("4. Delivered\n");
+
+            printf("Select New Status: ");
+            scanf("%d", &choice);
+
+            switch (choice)
+            {
+            case 1:
+                strcpy(p[i].status, "Booked");
+                break;
+
+            case 2:
+                strcpy(p[i].status, "In Transit");
+                break;
+
+            case 3:
+                strcpy(p[i].status, "Out for Delivery");
+                break;
+
+            case 4:
+                strcpy(p[i].status, "Delivered");
+                break;
+
+            default:
+                printf("Invalid status!\n");
+                return;
+            }
+
+            printf("Delivery status updated!\n");
+            saveData();
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found)
+        printf("Parcel not found!\n");
+}
+
+// 4. Customer Details
+void customerDetails()
+{
+    int id, found = 0;
+
+    printf("\nEnter Tracking ID: ");
+    scanf("%d", &id);
+
+    for (int i = 0; i < count; i++)
+    {
+        if (p[i].id == id)
+        {
+            printf("\n===== CUSTOMER DETAILS =====\n");
+            printf("Customer Name : %s\n", p[i].name);
+            printf("Phone Number  : %s\n", p[i].phone);
+            printf("Address       : %s\n", p[i].address);
+            printf("Destination   : %s\n", p[i].destination);
+            printf("Weight        : %.2f kg\n", p[i].weight);
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found)
+        printf("Customer details not found!\n");
+}
+
+// 5. Delivery Report
+void deliveryReport()
+{
+    int delivered = 0, pending = 0;
+
+    printf("\n========== DELIVERY REPORT ==========\n");
+
+    printf("%-10s %-20s %-20s\n", "ID", "Customer", "Status");
+
+    for (int i = 0; i < count; i++)
+    {
+        printf("%-10d %-20s %-20s\n",
+               p[i].id, p[i].name, p[i].status);
+
+        if (strcmp(p[i].status, "Delivered") == 0)
+            delivered++;
+        else
+            pending++;
+    }
+
+    printf("\nTotal Parcels    : %d\n", count);
+    printf("Delivered Parcels: %d\n", delivered);
+    printf("Pending Parcels  : %d\n", pending);
+}
